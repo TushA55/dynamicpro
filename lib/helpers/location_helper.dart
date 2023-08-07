@@ -20,7 +20,7 @@ class LocationHelper {
     if (permission) {
       final serviceStatus = await PermissionHelper().requestLocationService();
       if (serviceStatus) {
-        return Location.instance.getLocation();
+        return await Location.instance.getLocation();
       }
     }
     return null;

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:floyer/constants/app_constants.dart';
 import 'package:floyer/helpers/distance_helper.dart';
-import 'package:floyer/helpers/location_helper.dart';
 import 'package:floyer/helpers/permission_helper.dart';
 import 'package:floyer/pages/home/profiles_list.dart';
 import 'package:floyer/pages/location_page.dart';
@@ -10,6 +9,7 @@ import 'package:floyer/providers/profile_provider.dart';
 import 'package:floyer/router.dart';
 import 'package:floyer/services/notification_service.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  StreamSubscription? _locationSubscription;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -28,31 +28,34 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final hasPermission =
           await PermissionHelper().requestNotificationPermission();
+
       if (hasPermission) {
-        NotificationService().initialize();
+        NotificationService().setListeners();
       }
 
-      final locationStream = await LocationHelper().locationStream();
-      _locationSubscription = locationStream?.listen((position) {
-        final profiles = context.read<ProfileProvider>().profiles;
-        if (profiles.isNotEmpty) {
-          // Get the nearest profile and update the theme.
-          final nearest = DistanceHelper.getNearestProfile(
-            position.latitude!,
-            position.longitude!,
-            profiles,
-          );
-
-          if (nearest != null) {
-            // Update the profile only if the nearest profile is different from
-            context.read<ProfileProvider>().updateProfile(nearest);
-          } else {
-            context
-                .read<ProfileProvider>()
-                .updateProfile(AppConstants.fallbackProfile);
-          }
+      if (await PermissionHelper().requestLocationPermission()) {
+        if (await PermissionHelper().requestLocationService()) {
+          Location.instance.onLocationChanged.listen((position) {
+            final profiles = context.read<ProfileProvider>().profiles;
+            if (profiles.isNotEmpty) {
+              // Get the nearest profile and update the theme.
+              final nearest = DistanceHelper.getNearestProfile(
+                position.latitude!,
+                position.longitude!,
+                profiles,
+              );
+              if (nearest != null) {
+                // Update the profile only if the nearest profile is different from
+                context.read<ProfileProvider>().updateProfile(nearest);
+              } else {
+                context
+                    .read<ProfileProvider>()
+                    .updateProfile(AppConstants.fallbackProfile);
+              }
+            }
+          });
         }
-      });
+      }
     });
   }
 
@@ -79,7 +82,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _locationSubscription?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 }

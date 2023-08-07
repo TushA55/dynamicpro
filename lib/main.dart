@@ -3,6 +3,7 @@ import 'package:floyer/pages/home/home_page.dart';
 import 'package:floyer/providers/profile_provider.dart';
 import 'package:floyer/router.dart';
 import 'package:floyer/services/local_storage.dart';
+import 'package:floyer/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage().initialize();
+  await NotificationService().initialize();
 
   runApp(
     MultiProvider(
