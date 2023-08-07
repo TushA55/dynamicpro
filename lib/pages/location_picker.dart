@@ -105,6 +105,7 @@ class _LocationPickerState extends State<LocationPicker> {
               'id': 'mapbox.mapbox-streets-v8',
               "accessToken": accessToken,
             },
+            subdomains: const ['a', 'b', 'c'],
           ),
           CurrentLocationLayer(
             followOnLocationUpdate: FollowOnLocationUpdate.once,

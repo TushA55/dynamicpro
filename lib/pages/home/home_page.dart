@@ -8,8 +8,8 @@ import 'package:floyer/pages/home/profiles_list.dart';
 import 'package:floyer/pages/location_page.dart';
 import 'package:floyer/providers/profile_provider.dart';
 import 'package:floyer/router.dart';
+import 'package:floyer/services/notification_service.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,13 +20,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  StreamSubscription<Position>? _locationSubscription;
+  StreamSubscription? _locationSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      PermissionHelper().requestNotificationPermission();
+      final hasPermission =
+          await PermissionHelper().requestNotificationPermission();
+      if (hasPermission) {
+        NotificationService().initialize();
+      }
 
       final locationStream = await LocationHelper().locationStream();
       _locationSubscription = locationStream?.listen((position) {
@@ -34,11 +38,11 @@ class _HomePageState extends State<HomePage> {
         if (profiles.isNotEmpty) {
           // Get the nearest profile and update the theme.
           final nearest = DistanceHelper.getNearestProfile(
-            position.latitude,
-            position.longitude,
+            position.latitude!,
+            position.longitude!,
             profiles,
           );
-          
+
           if (nearest != null) {
             // Update the profile only if the nearest profile is different from
             context.read<ProfileProvider>().updateProfile(nearest);

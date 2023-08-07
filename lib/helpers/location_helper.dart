@@ -1,32 +1,26 @@
 import 'package:floyer/helpers/permission_helper.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
 
 class LocationHelper {
   /// Returns a stream of [Position] objects.
-  Future<Stream<Position>?> locationStream() async {
+  Future<Stream<LocationData>?> locationStream() async {
     final permission = await PermissionHelper().requestLocationPermission();
     if (permission) {
       final serviceStatus = await PermissionHelper().requestLocationService();
       if (serviceStatus) {
-        return Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.bestForNavigation,
-          ),
-        );
+        return Location.instance.onLocationChanged;
       }
     }
     return null;
   }
 
   /// Returns a [Position] object.
-  Future<Position?> getCurrentLocation() async {
+  Future<LocationData?> getCurrentLocation() async {
     final permission = await PermissionHelper().requestLocationPermission();
     if (permission) {
       final serviceStatus = await PermissionHelper().requestLocationService();
       if (serviceStatus) {
-        return Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.bestForNavigation,
-        );
+        return Location.instance.getLocation();
       }
     }
     return null;

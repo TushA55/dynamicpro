@@ -18,12 +18,13 @@ class ProfileProvider extends ChangeNotifier {
   Future<void> initialize() async {
     final profiles = await LocalStorage().getProfiles();
     _profiles.addAll(profiles);
+    notifyListeners();
 
     final position = await LocationHelper().getCurrentLocation();
     if (position != null && profiles.isNotEmpty) {
       final nearest = DistanceHelper.getNearestProfile(
-        position.latitude,
-        position.longitude,
+        position.latitude!,
+        position.longitude!,
         profiles,
       );
       if (nearest != null) {
